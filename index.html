@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>رفيق المذاكرة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;700&display=swap">
+<style>
+/* Layout: one centered column of soft cards on a pale pink ground; subject cards, then a sticker shelf; the tutor floats as a sheet. */
+:root{
+  --bg:#fff7fa; --surface:#ffffff; --surface-2:#fff0f5;
+  --ink:#3a2431; --muted:#7d6172; --line:#f4d6e3;
+  --pink:#c93f79; --pink-deep:#a82f62; --pink-soft:#fde0ec; --on-pink:#ffffff;
+  --ok:#1f7a52; --ok-soft:#dff5ea; --bad:#b83b32; --bad-soft:#fde3e0;
+  --shadow:0 10px 28px rgba(201,63,121,.10);
+  --f-display:'Readex Pro','IBM Plex Sans Arabic',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans Arabic',system-ui,'Segoe UI',Tahoma,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1d1419; --surface:#291b23; --surface-2:#33212c;
+    --ink:#fbe9f1; --muted:#c9a3b7; --line:#47303c;
+    --pink:#f08fb7; --pink-deep:#ffb3d1; --pink-soft:#4a2638; --on-pink:#2a1220;
+    --ok:#6fd6a4; --ok-soft:#1f3a2d; --bad:#ff8c82; --bad-soft:#43231f;
+    --shadow:0 10px 28px rgba(0,0,0,.35); color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1d1419; --surface:#291b23; --surface-2:#33212c;
+  --ink:#fbe9f1; --muted:#c9a3b7; --line:#47303c;
+  --pink:#f08fb7; --pink-deep:#ffb3d1; --pink-soft:#4a2638; --on-pink:#2a1220;
+  --ok:#6fd6a4; --ok-soft:#1f3a2d; --bad:#ff8c82; --bad-soft:#43231f;
+  --shadow:0 10px 28px rgba(0,0,0,.35); color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--f-body); font-size:16px; line-height:1.75;
+  padding-block:0 96px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+h1,h2,h3{font-family:var(--f-display); line-height:1.35; margin:0; text-wrap:balance}
+h1{font-size:clamp(1.55rem,4.5vw,2.2rem)} h2{font-size:1.2rem} h3{font-size:1.05rem}
+p{margin:0}
+button,input,select{font:inherit; color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--pink); outline-offset:2px; border-radius:8px}
+.wrap{max-width:980px; margin:0 auto; display:flex; flex-direction:column; gap:20px; min-width:0}
+.eyebrow{font-size:.8rem; letter-spacing:.04em; color:var(--pink); font-weight:600}
+.muted{color:var(--muted)}
+
+/* top bar */
+.topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding-block:14px; border-bottom:1px solid var(--line); margin-bottom:4px}
+.brand{display:flex; align-items:center; gap:10px; font-family:var(--f-display); font-weight:700; font-size:1.1rem; background:none; border:0; padding:0}
+.brand svg{width:34px; height:34px}
+.top-right{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.chip{display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; background:var(--pink-soft); color:var(--pink-deep); font-size:.85rem; font-weight:500; border:0}
+.chip.sync::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--muted)}
+.chip.sync[data-s="ok"]::before{background:var(--ok)} .chip.sync[data-s="fail"]::before{background:var(--bad)} .chip.sync[data-s="ready"]::before{background:var(--pink)}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 22px; border-radius:12px; border:0; background:var(--pink); color:var(--on-pink); font-weight:600; min-height:44px; transition:transform .15s, background .15s}
+.btn:hover{background:var(--pink-deep); color:#fff} .btn:active{transform:scale(.98)}
+.btn.ghost{background:transparent; color:var(--pink-deep); border:1.5px solid var(--line)} .btn.ghost:hover{background:var(--pink-soft); color:var(--pink-deep)}
+.btn.small{padding:6px 14px; min-height:36px; font-size:.9rem}
+.link{background:none; border:0; padding:0; color:var(--pink-deep); text-decoration:underline; text-underline-offset:3px}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:22px; box-shadow:var(--shadow); min-width:0}
+
+/* login */
+.login{max-width:980px; margin:0 auto; display:grid; grid-template-columns:1.1fr 1fr; gap:28px; align-items:center; padding-block:40px; min-height:80vh}
+.login-art{background:var(--pink-soft); border-radius:28px; padding:20px; aspect-ratio:1/1; max-height:460px; display:flex}
+.login-art svg{width:100%; height:100%}
+.login-card{display:flex; flex-direction:column; gap:10px}
+.login-card label{font-weight:600; margin-top:8px}
+.login-card input,.login-card select{width:100%; padding:12px 14px; border-radius:12px; border:1.5px solid var(--line); background:var(--bg); min-height:48px}
+.login-card input:focus,.login-card select:focus{border-color:var(--pink); outline:none; box-shadow:0 0 0 3px var(--pink-soft)}
+.err{color:var(--bad); min-height:1.5em; font-size:.9rem}
+.note{font-size:.85rem; color:var(--muted)}
+
+/* home */
+.hero{display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center; background:linear-gradient(135deg,var(--pink-soft),var(--surface-2)); border:1px solid var(--line); border-radius:24px; padding:26px}
+.hero p{color:var(--muted); margin-top:6px}
+.meter{display:flex; flex-direction:column; gap:6px; min-width:180px}
+.bar{height:10px; border-radius:99px; background:var(--surface); overflow:hidden; border:1px solid var(--line)}
+.bar>i{display:block; height:100%; background:var(--pink); border-radius:99px; transition:width .5s}
+.meter b{font-family:var(--f-display); font-size:1.4rem; color:var(--pink-deep)}
+.subjects{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px}
+.subject{display:flex; flex-direction:column; gap:12px; text-align:start; cursor:pointer; transition:transform .2s, box-shadow .2s; font:inherit; color:inherit}
+.subject:hover{transform:translateY(-3px)}
+.subject .ico{width:56px; height:56px; border-radius:16px; background:var(--pink-soft); display:grid; place-items:center}
+.subject .ico svg{width:34px; height:34px}
+.subject .meta{display:flex; gap:10px; align-items:center; justify-content:space-between; color:var(--muted); font-size:.9rem}
+.shelf-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap}
+.stickers{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:14px}
+.sticker{display:flex; flex-direction:column; align-items:center; gap:6px; text-align:center; background:var(--surface); border:1px dashed var(--line); border-radius:16px; padding:14px 8px; font-size:.85rem}
+.sticker svg{width:76px; height:76px}
+.sticker.on{border-style:solid; cursor:pointer}
+.sticker.lock{color:var(--muted)}
+.wiggle svg{animation:wig .6s}
+@keyframes wig{20%{transform:rotate(-10deg) scale(1.1)}50%{transform:rotate(8deg) scale(1.15)}80%{transform:rotate(-4deg)}}
+
+/* subject + section */
+.crumbs{display:flex; gap:8px; align-items:center; color:var(--muted); font-size:.9rem; flex-wrap:wrap}
+.list{display:flex; flex-direction:column; gap:12px; margin:0; padding:0; list-style:none}
+.row{display:grid; grid-template-columns:auto 1fr auto; gap:14px; align-items:center; width:100%; text-align:start; background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:16px 18px; transition:border-color .2s, transform .2s}
+.row:hover{border-color:var(--pink); transform:translateX(-3px)}
+.num{width:42px; height:42px; border-radius:50%; background:var(--pink-soft); color:var(--pink-deep); display:grid; place-items:center; font-family:var(--f-display); font-weight:700}
+.row small{display:block; color:var(--muted)}
+.pill{padding:3px 12px; border-radius:99px; font-size:.82rem; font-weight:600; background:var(--surface-2); color:var(--muted); white-space:nowrap}
+.pill.done{background:var(--ok-soft); color:var(--ok)}
+.pill.try{background:var(--pink-soft); color:var(--pink-deep)}
+.res{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px}
+.res-btn{display:flex; align-items:center; gap:14px; padding:16px 18px; border-radius:16px; background:var(--surface); border:1px solid var(--line); text-decoration:none; color:var(--ink); transition:border-color .2s, transform .2s}
+a.res-btn:hover{border-color:var(--pink); transform:translateY(-2px)}
+.res-btn .ri{width:46px; height:46px; border-radius:14px; background:var(--pink-soft); display:grid; place-items:center; flex:none}
+.res-btn .ri svg{width:24px; height:24px}
+.res-btn b{display:block} .res-btn small{color:var(--muted)}
+.res-btn.off{opacity:.65; border-style:dashed}
+.summary ul{margin:12px 0 0; padding-inline-start:22px; display:flex; flex-direction:column; gap:8px}
+.summary li::marker{color:var(--pink)}
+pre.code{direction:ltr; text-align:left; margin:16px 0 0; padding:14px 16px; background:var(--surface-2); border:1px solid var(--line); border-radius:12px; font-family:var(--f-mono); font-size:.88rem; line-height:1.6; overflow-x:auto}
+.pager{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+
+/* quiz */
+.qhead{display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap}
+.dots{display:flex; gap:6px}
+.dots i{width:28px; height:6px; border-radius:99px; background:var(--line)}
+.dots i.cur{background:var(--pink)} .dots i.ok{background:var(--ok)} .dots i.bad{background:var(--bad)}
+.q{font-family:var(--f-display); font-size:1.1rem; line-height:1.6; margin-bottom:14px}
+.opts{display:flex; flex-direction:column; gap:10px}
+.opt{display:flex; gap:12px; align-items:center; text-align:start; width:100%; padding:12px 14px; border-radius:14px; border:1.5px solid var(--line); background:var(--bg); min-height:50px; transition:border-color .15s, background .15s}
+.opt:hover:not(:disabled){border-color:var(--pink); background:var(--pink-soft)}
+.opt .l{width:30px; height:30px; border-radius:50%; background:var(--surface); border:1px solid var(--line); display:grid; place-items:center; flex:none; font-weight:600; font-size:.9rem}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok); background:var(--ok-soft)} .opt.bad{border-color:var(--bad); background:var(--bad-soft)}
+.fb{margin-top:14px; padding:12px 14px; border-radius:12px; background:var(--surface-2); border:1px solid var(--line)}
+.fb b.ok{color:var(--ok)} .fb b.bad{color:var(--bad)}
+.result{display:flex; flex-direction:column; align-items:center; gap:10px; text-align:center; padding:6px 0}
+.result .score{font-family:var(--f-display); font-size:2.4rem; color:var(--pink-deep)}
+.result svg.big{width:120px; height:120px; animation:wig .8s}
+.actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+
+/* tutor */
+.fab{position:fixed; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); left:max(16px, env(safe-area-inset-left, 0px)); z-index:20; display:flex; align-items:center; gap:10px; padding:8px 18px 8px 10px; border-radius:999px; border:0; background:var(--pink); color:var(--on-pink); box-shadow:0 10px 24px rgba(201,63,121,.35); font-weight:600}
+.fab svg{width:38px; height:38px; background:var(--surface); border-radius:50%}
+.tutor{position:fixed; bottom:calc(16px + env(safe-area-inset-bottom, 0px)); left:max(16px, env(safe-area-inset-left, 0px)); z-index:30; width:min(400px, calc(100vw - 32px)); height:min(560px, calc(100dvh - 40px)); background:var(--surface); border:1px solid var(--line); border-radius:22px; box-shadow:0 18px 50px rgba(120,30,70,.28); display:flex; flex-direction:column; overflow:hidden}
+.t-head{display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--pink-soft); border-bottom:1px solid var(--line)}
+.t-head svg{width:40px; height:40px; background:var(--surface); border-radius:50%}
+.t-head div{flex:1; min-width:0} .t-head small{color:var(--muted); display:block; line-height:1.3}
+.t-x{border:0; background:var(--surface); width:36px; height:36px; border-radius:50%; font-size:1.2rem; line-height:1}
+.t-msgs{flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; min-height:0}
+.m{max-width:88%; padding:10px 14px; border-radius:16px; white-space:pre-wrap; overflow-wrap:anywhere}
+.m.bot{background:var(--surface-2); border:1px solid var(--line); align-self:flex-start; border-start-start-radius:4px}
+.m.me{background:var(--pink); color:var(--on-pink); align-self:flex-end; border-start-end-radius:4px}
+.m pre.code{margin-top:10px; font-size:.8rem}
+.t-chips{display:flex; gap:8px; flex-wrap:wrap; padding:0 14px 10px}
+.t-chips button{border:1px solid var(--line); background:var(--bg); border-radius:99px; padding:4px 12px; font-size:.82rem}
+.t-chips button:hover{background:var(--pink-soft)}
+.t-form{display:flex; gap:8px; padding:10px 12px; border-top:1px solid var(--line)}
+.t-form input{flex:1; min-width:0; padding:10px 14px; border-radius:99px; border:1.5px solid var(--line); background:var(--bg); min-height:44px}
+.t-form input:focus{border-color:var(--pink); outline:none}
+.toast{position:fixed; top:calc(14px + env(safe-area-inset-top, 0px)); left:50%; transform:translateX(-50%); z-index:50; background:var(--ink); color:var(--bg); padding:10px 18px; border-radius:99px; font-size:.9rem; max-width:calc(100vw - 32px)}
+
+@media (max-width:720px){
+  .login{grid-template-columns:1fr; padding-block:20px; min-height:0}
+  .login-art{max-height:240px; aspect-ratio:auto}
+  .hero{grid-template-columns:1fr}
+  .row{grid-template-columns:auto 1fr}
+  .row .pill{grid-column:2; justify-self:start}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<button class="fab" id="fab" type="button" data-act="tutor-open" hidden aria-label="افتح المعلم الذكي">
+  <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="27" r="15" fill="#fde0ec" stroke="#c93f79" stroke-width="2"/><circle cx="18.5" cy="27" r="2" fill="#3a2431"/><circle cx="29.5" cy="27" r="2" fill="#3a2431"/><path d="M18.5 33q5.5 4.5 11 0" stroke="#3a2431" stroke-width="2" fill="none" stroke-linecap="round"/><polygon points="24,5 42,12 24,19 6,12" fill="#c93f79"/><path d="M13 16v5q11 6 22 0v-5" fill="#a82f62"/></svg>
+  المعلم الذكي
+</button>
+
+<aside class="tutor" id="tutor" hidden aria-label="المعلم الذكي">
+  <div class="t-head">
+    <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="27" r="15" fill="#fde0ec" stroke="#c93f79" stroke-width="2"/><circle cx="18.5" cy="27" r="2" fill="#3a2431"/><circle cx="29.5" cy="27" r="2" fill="#3a2431"/><path d="M18.5 33q5.5 4.5 11 0" stroke="#3a2431" stroke-width="2" fill="none" stroke-linecap="round"/><polygon points="24,5 42,12 24,19 6,12" fill="#c93f79"/><path d="M13 16v5q11 6 22 0v-5" fill="#a82f62"/></svg>
+    <div><h3>المعلم الذكي</h3><small>اسألني عن هياكل البيانات والشبكات</small></div>
+    <button class="t-x" type="button" data-act="tutor-close" aria-label="إغلاق">×</button>
+  </div>
+  <div class="t-msgs" id="tmsgs" aria-live="polite"></div>
+  <div class="t-chips" id="tchips"></div>
+  <form class="t-form" id="tform" autocomplete="off">
+    <input id="tin" type="text" placeholder="اكتب سؤالك هنا" aria-label="سؤالك" maxlength="200">
+    <button class="btn small" type="submit">إرسال</button>
+  </form>
+</aside>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+document.documentElement.setAttribute('dir','rtl');
+document.documentElement.setAttribute('lang','ar');
+
+/* ============ 1) الإعدادات: ضع بيانات مشروع Supabase هنا ============ */
+const CONFIG = {
+  SUPABASE_URL: '',        // مثال: https://xxxx.supabase.co
+  SUPABASE_ANON_KEY: ''    // المفتاح العام anon public
+};
+const YEARS = ['السنة الأولى','السنة الثانية','السنة الثالثة','السنة الرابعة'];
+const PASS_MARK = 2; // عدد الإجابات الصحيحة المطلوبة للنجاح من 3
+
+/* ============ 2) المحتوى: عدّل روابط pdf و video لكل جزء ============ */
+const SUBJECTS = [
+ { id:'ds', title:'هياكل البيانات', en:'Data Structures',
+   about:'من تحليل التعقيد إلى المصفوفات والقوائم والمكدس والطابور والأشجار.',
+   sections:[
+  { id:'ds1', title:'تحليل الخوارزميات وBig-O', pdf:'', video:'',
+    summary:['Big-O يصف كيف يزيد زمن التنفيذ أو الذاكرة كلما كبر حجم المدخلات n.',
+             'الترتيب من الأسرع إلى الأبطأ: O(1) ثم O(log n) ثم O(n) ثم O(n log n) ثم O(n²).',
+             'نتجاهل الثوابت والحدود الصغرى، فالتعبير 3n + 5 يعتبر O(n).'],
+    code:'for i in range(n):\n    for j in range(n):\n        work()   # n × n = O(n²)',
+    quiz:[
+     {q:'ما تعقيد البحث الثنائي في مصفوفة مرتبة؟', o:['O(n)','O(log n)','O(n²)','O(1)'], a:1, e:'في كل خطوة يُستبعد نصف العناصر، فيكون الزمن لوغاريتمياً.'},
+     {q:'ما تعقيد الوصول إلى عنصر في مصفوفة عن طريق الفهرس؟', o:['O(1)','O(n)','O(log n)','O(n²)'], a:0, e:'العنوان يُحسب مباشرة من الفهرس، فالزمن ثابت.'},
+     {q:'حلقتان متداخلتان، كل واحدة تدور n مرة. ما التعقيد؟', o:['O(n)','O(2n)','O(n²)','O(log n)'], a:2, e:'n × n = n² عملية.'}
+    ]},
+  { id:'ds2', title:'المصفوفات والقوائم المترابطة', pdf:'', video:'',
+    summary:['المصفوفة تخزن عناصرها متجاورة في الذاكرة، فالوصول بالفهرس O(1) لكن الإدراج في المنتصف O(n).',
+             'في القائمة المترابطة كل عقدة تحمل قيمة ومؤشراً للعقدة التالية، فالإضافة في البداية O(1) والوصول لعنصر بعينه O(n).',
+             'المصفوفة أنسب للقراءة المتكررة، والقائمة أنسب لكثرة الإضافة والحذف.'],
+    code:'class Node:\n    def __init__(self, val):\n        self.val = val\n        self.next = None',
+    quiz:[
+     {q:'أي بنية بيانات تحتاج كل عقدة فيها إلى مؤشر للعقدة التالية؟', o:['المصفوفة','القائمة المترابطة','الجدول الرياضي','المكدس فقط'], a:1, e:'المؤشر next هو الذي يربط العقد ببعضها.'},
+     {q:'ما تعقيد إضافة عنصر في بداية قائمة مترابطة؟', o:['O(1)','O(n)','O(log n)','O(n²)'], a:0, e:'ننشئ عقدة جديدة ونجعلها الرأس دون إزاحة أي عنصر.'},
+     {q:'ما ميزة المصفوفة على القائمة المترابطة؟', o:['الإضافة في البداية أسرع','حجمها يتغير تلقائياً دائماً','الوصول المباشر بالفهرس','لا تحتاج ذاكرة'], a:2, e:'عناصرها متجاورة، فنصل لأي عنصر في زمن ثابت.'}
+    ]},
+  { id:'ds3', title:'المكدس والطابور', pdf:'', video:'',
+    summary:['المكدس Stack: آخر عنصر يدخل هو أول عنصر يخرج (LIFO). عملياته push وpop وpeek.',
+             'الطابور Queue: أول عنصر يدخل هو أول عنصر يخرج (FIFO). عملياته enqueue وdequeue.',
+             'المكدس يُستخدم في التراجع Undo واستدعاءات الدوال، والطابور في طوابير الطباعة والمهام.'],
+    code:'stack = []\nstack.append(1)\nstack.append(2)\nstack.pop()   # 2',
+    quiz:[
+     {q:'أي مبدأ يتبعه المكدس؟', o:['FIFO','LIFO','Random','Priority'], a:1, e:'آخر عنصر يضاف هو أول عنصر يُزال، مثل أطباق فوق بعضها.'},
+     {q:'أي مبدأ يتبعه الطابور؟', o:['LIFO','LILO فقط','FIFO','Sorted'], a:2, e:'أول من يصل هو أول من يُخدَم.'},
+     {q:'أي تطبيق يعتمد على المكدس؟', o:['طابور الطباعة','زر التراجع Undo','ترتيب الطلاب أبجدياً','توزيع المهام بالدور'], a:1, e:'آخر تعديل هو أول ما نتراجع عنه.'}
+    ]},
+  { id:'ds4', title:'الأشجار الثنائية', pdf:'', video:'',
+    summary:['الشجرة تتكون من عقد، أعلاها الجذر Root، والعقدة التي بلا أبناء تسمى ورقة Leaf.',
+             'في الشجرة الثنائية لكل عقدة ابنان على الأكثر: يسار ويمين.',
+             'في شجرة البحث الثنائية BST: ما في اليسار أصغر من العقدة وما في اليمين أكبر، وزيارة Inorder تعطي القيم مرتبة.'],
+    code:'def inorder(n):\n    if n:\n        inorder(n.left)\n        print(n.val)\n        inorder(n.right)',
+    quiz:[
+     {q:'كم عدد الأبناء الأقصى لأي عقدة في الشجرة الثنائية؟', o:['1','2','3','غير محدود'], a:1, e:'كلمة ثنائية تعني ابناً أيسر وابناً أيمن فقط.'},
+     {q:'ماذا تعطي زيارة Inorder لشجرة بحث ثنائية؟', o:['القيم مرتبة تصاعدياً','القيم مرتبة تنازلياً','الأوراق فقط','الجذر فقط'], a:0, e:'اليسار ثم العقدة ثم اليمين، والأصغر دائماً على اليسار.'},
+     {q:'ماذا نسمي العقدة التي ليس لها أبناء؟', o:['جذر','فرع','ورقة','أب'], a:2, e:'تسمى ورقة Leaf وتقع في آخر الشجرة.'}
+    ]}
+ ]},
+ { id:'nw', title:'شبكات الحاسب', en:'Networking',
+   about:'من أساسيات الشبكات إلى طبقات OSI وعناوين IP والبروتوكولات الأساسية.',
+   sections:[
+  { id:'nw1', title:'أساسيات الشبكات', pdf:'', video:'',
+    summary:['LAN شبكة محلية في نطاق صغير كمبنى، وWAN تربط مناطق بعيدة، والإنترنت أكبر مثال عليها.',
+             'الـSwitch يربط الأجهزة داخل الشبكة الواحدة ويوجّه الإطارات حسب عنوان MAC.',
+             'الـRouter يربط بين شبكات مختلفة ويوجّه الحزم حسب عنوان IP.'],
+    code:'',
+    quiz:[
+     {q:'ما الذي تغطيه الشبكة المحلية LAN عادة؟', o:['دولة كاملة','منطقة صغيرة مثل مبنى أو معمل','الكرة الأرضية','قارة'], a:1, e:'LAN تعني Local Area Network، أي نطاقاً محدوداً.'},
+     {q:'أي جهاز يربط بين شبكات مختلفة ويوجّه الحزم؟', o:['Hub','Switch','Router','Repeater'], a:2, e:'الراوتر يقرأ عنوان IP ويختار المسار بين الشبكات.'},
+     {q:'في أي طبقة يعمل الـSwitch أساساً؟', o:['Layer 1','Layer 2','Layer 4','Layer 7'], a:1, e:'يعمل في طبقة Data Link باستخدام عناوين MAC.'}
+    ]},
+  { id:'nw2', title:'نموذج OSI وTCP/IP', pdf:'', video:'',
+    summary:['نموذج OSI سبع طبقات: Physical، Data Link، Network، Transport، Session، Presentation، Application.',
+             'طبقة Network تتعامل مع عناوين IP والتوجيه، وطبقة Transport تضم TCP وUDP.',
+             'نموذج TCP/IP العملي يختصر الطبقات في أربع.'],
+    code:'',
+    quiz:[
+     {q:'كم عدد طبقات نموذج OSI؟', o:['4','5','7','9'], a:2, e:'سبع طبقات من Physical حتى Application.'},
+     {q:'أي طبقة مسؤولة عن عناوين IP والتوجيه؟', o:['Network','Transport','Session','Physical'], a:0, e:'طبقة Network هي طبقة الحزم وعناوين IP.'},
+     {q:'أي بروتوكولين يعملان في طبقة Transport؟', o:['HTTP وDNS','TCP وUDP','IP وARP','FTP وSMTP'], a:1, e:'TCP وUDP هما بروتوكولا النقل الرئيسيان.'}
+    ]},
+  { id:'nw3', title:'عناوين IP وSubnetting', pdf:'', video:'',
+    summary:['عنوان IPv4 طوله 32 بت ويُكتب في أربعة أجزاء مثل 192.168.1.10.',
+             'القناع 255.255.255.0 يكافئ /24، أي 24 بتاً للشبكة و8 بتات للأجهزة.',
+             'عدد الأجهزة الصالحة = 2^h − 2، ففي /24 يكون 2^8 − 2 = 254.'],
+    code:'192.168.1.10 /24\nالشبكة   : 192.168.1.0\nالبث     : 192.168.1.255\nالأجهزة  : 192.168.1.1 → 192.168.1.254',
+    quiz:[
+     {q:'ما طول عنوان IPv4 بالبت؟', o:['16','32','64','128'], a:1, e:'أربعة أجزاء، كل جزء 8 بتات.'},
+     {q:'القناع 255.255.255.0 يكافئ أي بادئة؟', o:['/8','/16','/24','/30'], a:2, e:'ثلاثة أجزاء كاملة تساوي 24 بتاً.'},
+     {q:'كم جهازاً صالحاً في شبكة /24؟', o:['256','255','254','252'], a:2, e:'256 عنواناً ناقص عنوان الشبكة وعنوان البث.'}
+    ]},
+  { id:'nw4', title:'البروتوكولات الأساسية', pdf:'', video:'',
+    summary:['DNS يحوّل اسم الموقع مثل example.com إلى عنوان IP.',
+             'HTTP يعمل على المنفذ 80، وHTTPS المشفّر على المنفذ 443.',
+             'TCP يضمن وصول البيانات بالترتيب بعد إنشاء اتصال، وUDP أسرع لكنه بلا اتصال ولا ضمان.'],
+    code:'',
+    quiz:[
+     {q:'ما وظيفة DNS؟', o:['تشفير الرسائل','تحويل أسماء النطاقات إلى عناوين IP','توزيع عناوين MAC','تسريع الإنترنت'], a:1, e:'نكتب اسم الموقع فيعيد DNS عنوانه الرقمي.'},
+     {q:'ما المنفذ الافتراضي لـ HTTPS؟', o:['21','80','443','8080'], a:2, e:'443 هو المنفذ القياسي للاتصال المشفّر.'},
+     {q:'ما الفرق الأساسي بين TCP وUDP؟', o:['TCP بلا اتصال وUDP موثوق','TCP موثوق ويحتاج اتصالاً وUDP أسرع بلا اتصال','لا فرق بينهما','UDP للبريد فقط'], a:1, e:'TCP يضمن التسليم والترتيب، وUDP يفضّل السرعة.'}
+    ]}
+ ]}
+];
+
+const STICKERS = [
+ {id:'ds1', sec:'ds1', name:'نجمة التعقيد',   shape:'star',   fill:'#f6a6c4', ink:'#4a1d34', label:'O(n)'},
+ {id:'ds2', sec:'ds2', name:'حلقة السلسلة',   shape:'hex',    fill:'#e9709f', ink:'#ffffff', label:'→'},
+ {id:'ds3', sec:'ds3', name:'برج المكدس',     shape:'cloud',  fill:'#ffc2d6', ink:'#4a1d34', label:'LIFO'},
+ {id:'ds4', sec:'ds4', name:'زهرة الشجرة',    shape:'flower', fill:'#f8b7cc', ink:'#4a1d34', label:'BST'},
+ {id:'nw1', sec:'nw1', name:'قلب الشبكة',     shape:'heart',  fill:'#d9578c', ink:'#ffffff', label:'LAN'},
+ {id:'nw2', sec:'nw2', name:'درع الطبقات',    shape:'shield', fill:'#c93f79', ink:'#ffffff', label:'OSI'},
+ {id:'nw3', sec:'nw3', name:'قطرة العنوان',   shape:'drop',   fill:'#f3a0bf', ink:'#4a1d34', label:'IP'},
+ {id:'nw4', sec:'nw4', name:'صاعقة البروتوكول',shape:'bolt',   fill:'#ff9fc2', ink:'#4a1d34', label:'DNS'},
+ {id:'sub-ds', subject:'ds', name:'تاج هياكل البيانات', shape:'crown', fill:'#b23d71', ink:'#ffffff', label:'DS'},
+ {id:'sub-nw', subject:'nw', name:'تاج الشبكات',        shape:'crown', fill:'#a82f62', ink:'#ffffff', label:'NET'}
+];
+
+/* ============ 3) المعلم الذكي: قاعدة معرفة محلية ============ */
+const KB = [
+ {k:['big o','big-o','bigo','تعقيد','o(n)','المعقد'], a:'Big-O يقيس كيف يكبر زمن تنفيذ الخوارزمية مع زيادة حجم المدخلات n.\nأمثلة: O(1) ثابت، O(log n) البحث الثنائي، O(n) حلقة واحدة، O(n²) حلقتان متداخلتان.'},
+ {k:['array','مصفوفه','مصفوفات'], a:'المصفوفة تخزن العناصر متجاورة في الذاكرة، فالوصول بالفهرس سريع O(1). عيبها أن الإدراج أو الحذف في المنتصف يحتاج إزاحة العناصر O(n).'},
+ {k:['linked list','linkedlist','قايمه مترابطه','قائمه مترابطه','قوائم مترابطه','القوايم'], a:'القائمة المترابطة عقد، كل عقدة فيها قيمة ومؤشر للعقدة التالية. الإضافة في البداية O(1) والوصول لعنصر بعينه O(n).', code:'class Node:\n    def __init__(self, val):\n        self.val = val\n        self.next = None'},
+ {k:['stack','مكدس','ستاك','lifo'], a:'المكدس Stack يعمل بمبدأ LIFO: آخر داخل أول خارج، مثل أطباق فوق بعضها. العمليات: push للإضافة، pop للإزالة، peek للقراءة بدون إزالة.', code:'s = []\ns.append(1); s.append(2)\ns.pop()  # 2'},
+ {k:['queue','طابور','كيو','fifo'], a:'الطابور Queue يعمل بمبدأ FIFO: أول داخل أول خارج، مثل طابور الناس أمام الشباك. العمليات: enqueue للإضافة وdequeue للإزالة.'},
+ {k:['tree','شجره','اشجار','bst','binary','ثنائيه'], a:'الشجرة هيكل هرمي له جذر وعقد وأوراق. في BST كل قيمة أصغر تذهب لليسار وكل قيمة أكبر لليمين، فيكون البحث O(log n) إذا كانت الشجرة متوازنة.'},
+ {k:['hash','هاش','تجزيه','تجزئه'], a:'جدول التجزئة Hash Table يحوّل المفتاح إلى فهرس عبر دالة تجزئة، فيصبح البحث والإضافة O(1) في المتوسط. إذا تصادم مفتاحان في نفس الخانة نستخدم السلاسل Chaining أو العنونة المفتوحة.'},
+ {k:['sort','ترتيب','bubble','merge','quick','فرز'], a:'Bubble Sort بسيط لكنه O(n²). أما Merge Sort وQuick Sort فمتوسطهما O(n log n)، وهما الأنسب للبيانات الكبيرة.'},
+ {k:['graph','جراف','رسم بياني'], a:'الرسم البياني Graph مجموعة رؤوس تربطها حواف. يُخزَّن بقائمة الجيران أو بمصفوفة الجوار، ويُجتاز بـ BFS أو DFS.'},
+ {k:['osi','طبقات','طبقه'], a:'نموذج OSI سبع طبقات من الأسفل للأعلى: Physical، Data Link، Network، Transport، Session، Presentation، Application.\nأمثلة: IP في Network، وTCP وUDP في Transport، وHTTP في Application.'},
+ {k:['tcp','udp'], a:'TCP يبني اتصالاً ويضمن وصول البيانات سليمة ومرتبة، ويناسب الويب والبريد. UDP بلا اتصال وأسرع لكنه بلا ضمان، ويناسب البث المباشر والألعاب.'},
+ {k:['subnet','subnetting','سبنت','تقسيم الشبكات','قناع','mask'], a:'القناع يحدد جزء الشبكة وجزء الأجهزة. /24 تعني 24 بتاً للشبكة و8 للأجهزة، فعدد الأجهزة الصالحة 2^8 − 2 = 254. كل بت إضافي للشبكة يقسم الشبكة إلى نصفين.'},
+ {k:['ip','ipv4','ايبي','عنوان'], a:'عنوان IPv4 مكوّن من 32 بت في أربعة أجزاء مثل 192.168.1.10. النطاقات الخاصة: 10.x.x.x و172.16 إلى 172.31 و192.168.x.x.'},
+ {k:['dns'], a:'DNS يحوّل اسم الموقع مثل example.com إلى عنوان IP، مثل دليل الهاتف للإنترنت. المتصفح يسأل خادم DNS أولاً ثم يتصل بالعنوان الذي يعود.'},
+ {k:['http','https'], a:'HTTP بروتوكول الويب ويعمل على المنفذ 80. HTTPS هو HTTP مع تشفير TLS ويعمل على المنفذ 443.'},
+ {k:['router','switch','راوتر','سويتش','محول'], a:'الـSwitch يربط الأجهزة داخل شبكة واحدة حسب عنوان MAC (طبقة 2). الـRouter يربط بين شبكات مختلفة حسب عنوان IP (طبقة 3).'},
+ {k:['lan','wan','شبكه محليه'], a:'LAN شبكة محلية في نطاق صغير كمبنى أو معمل. WAN تربط مناطق بعيدة، والإنترنت أكبر شبكة WAN.'},
+ {k:['مرحبا','اهلا','السلام','هلا','hello','hi'], a:'أهلاً بك! اسألني عن أي جزء في هياكل البيانات أو الشبكات، وسأشرحه لك ببساطة.'},
+ {k:['شكرا','thanks','thx'], a:'العفو! بالتوفيق في الاختبار القادم.'}
+];
+const CHIPS = ['ما هو Big-O؟','الفرق بين المكدس والطابور','ما هي طبقات OSI؟','كيف أحسب Subnetting؟'];
+
+/* ============ أدوات مساعدة ============ */
+const $ = (s,el=document)=>el.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const KEY='rafeeq-v1'; let mem=null;
+function load(){ try{ const r=localStorage.getItem(KEY); if(r) return JSON.parse(r); }catch(e){} return mem||{user:null,progress:{}}; }
+function save(){ mem=state.data; try{ localStorage.setItem(KEY,JSON.stringify(state.data)); }catch(e){} }
+function uid(){ try{ return crypto.randomUUID(); }catch(e){ return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0; return (c==='x'?r:(r&3|8)).toString(16);}); } }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function sectionOf(id){ for(const sub of SUBJECTS){ const i=sub.sections.findIndex(s=>s.id===id); if(i>=0) return {sub,sec:sub.sections[i],i}; } return null; }
+const state={data:load(), view:{name:'home'}, quiz:null, sync:'local'};
+
+/* ============ Supabase ============ */
+let sb=null;
+try{ if(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY && window.supabase){ sb=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_ANON_KEY); state.sync='ready'; } }catch(e){}
+const SYNC_TXT={local:'محفوظ على جهازك', ready:'Supabase جاهز', ok:'متصل بـ Supabase', fail:'تعذر الاتصال بـ Supabase'};
+function setSync(s){ state.sync=s; const el=$('#sync'); if(el){ el.dataset.s=s; el.textContent=SYNC_TXT[s]; } }
+async function remote(fn){ if(!sb) return; try{ const r=await fn(sb); if(r && r.error) throw r.error; setSync('ok'); }catch(e){ setSync('fail'); } }
+
+/* ============ التقدم والملصقات ============ */
+const P = ()=>state.data.progress;
+function passedCount(sub){ return sub.sections.filter(s=>P()[s.id]&&P()[s.id].passed).length; }
+function totalPassed(){ return SUBJECTS.reduce((n,s)=>n+passedCount(s),0); }
+const TOTAL = SUBJECTS.reduce((n,s)=>n+s.sections.length,0);
+function earnedSet(){
+  const set=new Set();
+  STICKERS.forEach(s=>{ if(s.sec && P()[s.sec] && P()[s.sec].passed) set.add(s.id); });
+  SUBJECTS.forEach(sub=>{ if(passedCount(sub)===sub.sections.length) set.add('sub-'+sub.id); });
+  return set;
+}
+function stickerSVG(st,on,cls){
+  const f=on?st.fill:'var(--line)', ink=on?st.ink:'var(--muted)', txt=on?st.label:'؟';
+  let shape='';
+  switch(st.shape){
+    case 'star': shape=`<polygon points="50,6 62,36 94,38 69,58 78,90 50,72 22,90 31,58 6,38 38,36" fill="${f}" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>`; break;
+    case 'heart': shape=`<path d="M50 90C10 60 6 32 26 20 38 13 48 20 50 28 52 20 62 13 74 20 94 32 90 60 50 90Z" fill="${f}" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>`; break;
+    case 'hex': shape=`<polygon points="50,5 90,27 90,73 50,95 10,73 10,27" fill="${f}" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>`; break;
+    case 'flower': shape=[[50,24],[74,37],[74,63],[50,76],[26,63],[26,37]].map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="19" fill="${f}" stroke="#fff" stroke-width="3"/>`).join('')+`<circle cx="50" cy="50" r="17" fill="${on?'#fff':'var(--surface)'}" opacity=".9"/>`; break;
+    case 'shield': shape=`<path d="M50 6 88 20V50C88 74 70 88 50 95 30 88 12 74 12 50V20Z" fill="${f}" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>`; break;
+    case 'drop': shape=`<path d="M50 6C50 6 82 42 82 62A32 32 0 0 1 18 62C18 42 50 6 50 6Z" fill="${f}" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>`; break;
+    case 'cloud': shape=`<path d="M28 76A18 18 0 0 1 30 40 24 24 0 0 1 76 42 17 17 0 0 1 74 76Z" fill="${f}" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>`; break;
+    case 'bolt': shape=`<polygon points="58,4 20,56 46,56 38,96 80,40 54,40" fill="${f}" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>`; break;
+    case 'crown': shape=`<polygon points="8,78 16,28 36,52 50,18 64,52 84,28 92,78" fill="${f}" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>`; break;
+    default: shape=`<circle cx="50" cy="50" r="44" fill="${f}"/>`;
+  }
+  const dy = st.shape==='crown'?66: st.shape==='drop'?66 : st.shape==='bolt'?58 : 56;
+  return `<svg class="${cls||''}" viewBox="0 0 100 100" aria-hidden="true">${shape}<text x="50" y="${dy}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="500" font-size="${txt.length>3?16:20}" fill="${ink}" direction="ltr">${esc(txt)}</text></svg>`;
+}
+let toastT; function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;},2400); }
+
+/* ============ العرض ============ */
+const root=$('#app');
+const ICO = {
+ ds:'<svg viewBox="0 0 40 40" fill="none" stroke="#c93f79" stroke-width="2.4" stroke-linecap="round"><circle cx="20" cy="8" r="4"/><circle cx="9" cy="30" r="4"/><circle cx="31" cy="30" r="4"/><path d="M17.5 11.5 11 26.5M22.5 11.5 29 26.5"/></svg>',
+ nw:'<svg viewBox="0 0 40 40" fill="none" stroke="#c93f79" stroke-width="2.4" stroke-linecap="round"><rect x="15" y="4" width="10" height="8" rx="2"/><rect x="3" y="28" width="10" height="8" rx="2"/><rect x="27" y="28" width="10" height="8" rx="2"/><path d="M20 12v8M8 28v-8h24v8"/></svg>',
+ pdf:'<svg viewBox="0 0 24 24" fill="none" stroke="#c93f79" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5M9 13h8M9 17h6"/></svg>',
+ video:'<svg viewBox="0 0 24 24" fill="none" stroke="#c93f79" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3z" fill="#c93f79"/></svg>'
+};
+const LOGO='<svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="12" fill="#c93f79"/><path d="M11 12h8a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3h-9zM29 12h-8" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><path d="M29 12v15h-7" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+
+function topbar(){
+  const u=state.data.user;
+  return `<header class="topbar">
+    <button class="brand" type="button" data-act="home">${LOGO}<span>رفيق المذاكرة</span></button>
+    <div class="top-right">
+      <span class="chip sync" id="sync" data-s="${state.sync}">${SYNC_TXT[state.sync]}</span>
+      <span class="chip">${esc(u.name)} · ${esc(u.year)}</span>
+      <button class="btn ghost small" type="button" data-act="logout">خروج</button>
+    </div></header>`;
+}
+function renderLogin(){
+  root.innerHTML=`<main class="login">
+    <div class="login-art"><svg viewBox="0 0 300 300" role="img" aria-label="شجرة ثنائية وشبكة صغيرة">
+      <g stroke="#c93f79" stroke-width="3" stroke-linecap="round" fill="none">
+        <path d="M150 50 100 110M150 50 200 110M100 110 70 170M100 110 130 170M200 110 170 170M200 110 230 170"/>
+        <path d="M60 250h60M150 250h0M180 250h60" stroke-dasharray="2 9"/>
+      </g>
+      <g fill="#fff" stroke="#c93f79" stroke-width="3">
+        <circle cx="150" cy="50" r="20"/><circle cx="100" cy="110" r="18"/><circle cx="200" cy="110" r="18"/>
+        <circle cx="70" cy="170" r="15"/><circle cx="130" cy="170" r="15"/><circle cx="170" cy="170" r="15"/><circle cx="230" cy="170" r="15"/>
+      </g>
+      <g fill="#c93f79"><circle cx="150" cy="50" r="7"/><circle cx="100" cy="110" r="6"/></g>
+      <g fill="#fff" stroke="#c93f79" stroke-width="3"><rect x="30" y="232" width="34" height="34" rx="9"/><rect x="133" y="232" width="34" height="34" rx="9"/><rect x="236" y="232" width="34" height="34" rx="9"/></g>
+      <g font-family="IBM Plex Mono, monospace" font-size="13" fill="#a82f62" text-anchor="middle"><text x="47" y="254">PC</text><text x="150" y="254">SW</text><text x="253" y="254">RT</text></g>
+    </svg></div>
+    <form id="login" class="card login-card" novalidate>
+      <p class="eyebrow">مواد الحاسب</p>
+      <h1>أهلاً بك في رفيق المذاكرة</h1>
+      <p class="muted">اكتب اسمك وسنتك الدراسية، وابدأ شرح هياكل البيانات وشبكات الحاسب مع اختبار بعد كل جزء.</p>
+      <label for="name">الاسم</label>
+      <input id="name" name="name" autocomplete="name" maxlength="40" placeholder="مثال: سارة أحمد">
+      <label for="year">السنة الدراسية</label>
+      <select id="year" name="year"><option value="">اختر السنة</option>${YEARS.map(y=>`<option>${y}</option>`).join('')}</select>
+      <p class="err" id="err" role="alert"></p>
+      <button class="btn" type="submit">ابدأ المذاكرة</button>
+      <p class="note">${sb?'يُحفظ تقدمك في حسابك على Supabase.':'يُحفظ تقدمك على هذا الجهاز. اربط Supabase من قسم الإعدادات في الكود.'}</p>
+    </form></main>`;
+}
+function renderHome(){
+  const u=state.data.user, done=totalPassed(), pct=Math.round(done/TOTAL*100), earned=earnedSet();
+  const first=u.name.trim().split(/\s+/)[0];
+  root.innerHTML=`<div class="wrap">${topbar()}
+    <section class="hero">
+      <div><p class="eyebrow">${esc(u.year)}</p><h1>أهلاً يا ${esc(first)}</h1>
+      <p>${done===0?'اختر مادة وابدأ بأول جزء. بعد كل جزء ستجد اختباراً قصيراً.':'أنجزت '+done+' من '+TOTAL+' أجزاء. كمّل من حيث توقفت.'}</p></div>
+      <div class="meter"><b>${pct}%</b><div class="bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div><span class="muted">${done} / ${TOTAL} أجزاء ناجحة</span></div>
+    </section>
+    <section aria-labelledby="h-sub"><h2 id="h-sub" style="margin-bottom:14px">المواد الدراسية</h2>
+      <div class="subjects">${SUBJECTS.map(s=>`<button type="button" class="card subject" data-act="subject" data-id="${s.id}">
+        <span class="ico">${ICO[s.id]}</span>
+        <div><h3>${s.title}</h3><p class="muted" dir="ltr" style="text-align:start;font-size:.85rem">${s.en}</p></div>
+        <p>${s.about}</p>
+        <div class="meta"><span>${s.sections.length} أجزاء · PDF وفيديو واختبار</span><span class="pill ${passedCount(s)===s.sections.length?'done':''}">${passedCount(s)} / ${s.sections.length}</span></div>
+      </button>`).join('')}</div></section>
+    <section aria-labelledby="h-st">
+      <div class="shelf-head"><h2 id="h-st">ملصقاتك</h2><span class="muted">${earned.size} من ${STICKERS.length}. ينال كل جزء ملصقاً عند النجاح في اختباره.</span></div>
+      <div class="stickers" style="margin-top:14px">${STICKERS.map(st=>{const on=earned.has(st.id); return `<button type="button" class="sticker ${on?'on':'lock'}" data-act="sticker" data-id="${st.id}" ${on?'':'aria-disabled="true"'}>${stickerSVG(st,on)}<span>${on?st.name:'مقفل'}</span></button>`;}).join('')}</div>
+    </section></div>`;
+}
+function renderSubject(id){
+  const sub=SUBJECTS.find(s=>s.id===id);
+  root.innerHTML=`<div class="wrap">${topbar()}
+    <nav class="crumbs"><button class="link" type="button" data-act="home">الرئيسية</button><span>/</span><span>${sub.title}</span></nav>
+    <header><p class="eyebrow">${sub.en}</p><h1>${sub.title}</h1><p class="muted" style="margin-top:6px">${sub.about}</p></header>
+    <ol class="list">${sub.sections.map((s,i)=>{const p=P()[s.id]; const st=p&&p.passed?'<span class="pill done">ناجح '+p.best+'/'+p.total+'</span>':p?'<span class="pill try">أعد المحاولة '+p.best+'/'+p.total+'</span>':'<span class="pill">لم يبدأ</span>'; return `<li><button type="button" class="row" data-act="section" data-id="${s.id}"><span class="num">${i+1}</span><span><b>${s.title}</b><small>ملخص · PDF · فيديو · اختبار ${s.quiz.length} أسئلة</small></span>${st}</button></li>`;}).join('')}</ol></div>`;
+}
+function resBtn(url,kind,label,sub){
+  const inner=`<span class="ri">${ICO[kind]}</span><span><b>${label}</b><small>${url?sub:'سيُضاف الرابط قريباً'}</small></span>`;
+  return url?`<a class="res-btn" href="${esc(url)}" target="_blank" rel="noopener">${inner}</a>`:`<span class="res-btn off" aria-disabled="true">${inner}</span>`;
+}
+function renderSection(id){
+  const {sub,sec,i}=sectionOf(id), prev=sub.sections[i-1], next=sub.sections[i+1];
+  root.innerHTML=`<div class="wrap">${topbar()}
+    <nav class="crumbs"><button class="link" type="button" data-act="home">الرئيسية</button><span>/</span><button class="link" type="button" data-act="subject" data-id="${sub.id}">${sub.title}</button></nav>
+    <header><p class="eyebrow">الجزء ${i+1} من ${sub.sections.length}</p><h1>${sec.title}</h1></header>
+    <section class="res" aria-label="مصادر الجزء">${resBtn(sec.pdf,'pdf','ملف PDF','افتح الملف')}${resBtn(sec.video,'video','فيديو الشرح','شاهد الآن')}</section>
+    <section class="card summary"><h2>ملخص سريع</h2><ul>${sec.summary.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>${sec.code?`<pre class="code">${esc(sec.code)}</pre>`:''}</section>
+    <section class="card" aria-labelledby="h-q"><h2 id="h-q" style="margin-bottom:12px">اختبر نفسك</h2><div id="quiz"></div></section>
+    <div class="pager">${prev?`<button class="btn ghost" type="button" data-act="section" data-id="${prev.id}">الجزء السابق</button>`:'<span></span>'}${next?`<button class="btn ghost" type="button" data-act="section" data-id="${next.id}">الجزء التالي</button>`:`<button class="btn ghost" type="button" data-act="subject" data-id="${sub.id}">كل الأجزاء</button>`}</div></div>`;
+  state.quiz=null; renderQuiz();
+}
+function renderQuiz(){
+  const box=$('#quiz'); if(!box) return;
+  const {sub,sec,i}=sectionOf(state.view.id); const q=state.quiz;
+  if(!q){
+    const p=P()[sec.id];
+    box.innerHTML=`<p>${sec.quiz.length} أسئلة اختيار من متعدد. يلزمك ${PASS_MARK} إجابات صحيحة لتنال ملصق الجزء.</p>${p?`<p class="muted">أفضل نتيجة لك: ${p.best} من ${p.total}</p>`:''}<div class="actions" style="justify-content:flex-start"><button class="btn" type="button" data-act="quiz-start">${p?'أعد الاختبار':'ابدأ الاختبار'}</button></div>`;
+    return;
+  }
+  if(q.done){
+    const passed=q.score>=PASS_MARK, st=STICKERS.find(s=>s.sec===sec.id);
+    const subDone=passed&&passedCount(sub)===sub.sections.length, subSt=STICKERS.find(s=>s.id==='sub-'+sub.id);
+    box.innerHTML=`<div class="result"><span class="score">${q.score} / ${q.items.length}</span>
+      <p><b>${passed?'أحسنت، نجحت في هذا الجزء':'قريب جداً، راجع الملخص وحاول مرة أخرى'}</b></p>
+      ${passed?stickerSVG(st,true,'big')+`<p>حصلت على ملصق «${st.name}»</p>`:''}
+      ${subDone&&q.firstFinish?`<p class="chip">أنهيت كل أجزاء ${sub.title}، وحصلت على «${subSt.name}»</p>`:''}
+      <div class="actions"><button class="btn ghost" type="button" data-act="quiz-start">أعد الاختبار</button>${sub.sections[i+1]?`<button class="btn" type="button" data-act="section" data-id="${sub.sections[i+1].id}">الجزء التالي</button>`:`<button class="btn" type="button" data-act="home">إلى الرئيسية</button>`}</div></div>`;
+    return;
+  }
+  const it=q.items[q.i], L=['أ','ب','ج','د'];
+  box.innerHTML=`<div class="qhead"><span class="muted">السؤال ${q.i+1} من ${q.items.length}</span><div class="dots">${q.items.map((x,k)=>`<i class="${k===q.i?'cur':x.res===true?'ok':x.res===false?'bad':''}"></i>`).join('')}</div></div>
+    <p class="q">${esc(it.q)}</p>
+    <div class="opts">${it.o.map((o,k)=>{ let c=''; if(q.picked!==null){ if(o.ok) c='ok'; else if(k===q.picked) c='bad'; } return `<button type="button" class="opt ${c}" data-act="pick" data-i="${k}" ${q.picked!==null?'disabled':''}><span class="l">${L[k]}</span><span>${esc(o.t)}</span></button>`; }).join('')}</div>
+    ${q.picked!==null?`<div class="fb" role="status"><b class="${it.res?'ok':'bad'}">${it.res?'إجابة صحيحة':'إجابة غير صحيحة'}</b><p>${esc(it.e)}</p></div><div class="actions" style="justify-content:flex-start"><button class="btn" type="button" data-act="quiz-next">${q.i+1<q.items.length?'السؤال التالي':'شاهد النتيجة'}</button></div>`:''}`;
+}
+function render(){
+  const u=state.data.user, v=state.view;
+  if(!u) renderLogin();
+  else if(v.name==='subject') renderSubject(v.id);
+  else if(v.name==='section') renderSection(v.id);
+  else renderHome();
+  $('#fab').hidden=!u||!$('#tutor').hidden;
+  if(!u) $('#tutor').hidden=true;
+  window.scrollTo(0,0);
+}
+function go(name,id){ state.view={name,id}; render(); }
+
+/* ============ الاختبار ============ */
+function startQuiz(){
+  const {sec}=sectionOf(state.view.id);
+  state.quiz={i:0,score:0,picked:null,done:false,items:sec.quiz.map(q=>({q:q.q,e:q.e,res:null,o:shuffle(q.o.map((t,k)=>({t,ok:k===q.a})))}))};
+  renderQuiz();
+}
+function pick(k){
+  const q=state.quiz; if(q.picked!==null) return;
+  const it=q.items[q.i]; q.picked=k; it.res=!!it.o[k].ok; if(it.res) q.score++; renderQuiz();
+}
+function nextQ(){
+  const q=state.quiz;
+  if(q.i+1<q.items.length){ q.i++; q.picked=null; renderQuiz(); return; }
+  q.done=true;
+  const {sec}=sectionOf(state.view.id), old=P()[sec.id], passed=q.score>=PASS_MARK;
+  const wasPassed=!!(old&&old.passed);
+  P()[sec.id]={best:Math.max(q.score,old?old.best:0), total:q.items.length, passed:wasPassed||passed, attempts:(old?old.attempts:0)+1};
+  q.firstFinish=passed;
+  save(); renderQuiz();
+  const u=state.data.user;
+  remote(c=>c.from('quiz_results').insert({student_id:u.id, section_id:sec.id, score:q.score, total:q.items.length}));
+}
+
+/* ============ المعلم الذكي ============ */
+const norm = s=>String(s).toLowerCase().replace(/[\u064B-\u065F\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه');
+function answer(text){
+  const q=norm(text), tokens=q.split(/[^a-z0-9()]+/).filter(Boolean);
+  let best=null, score=0;
+  KB.forEach(e=>{ let s=0; e.k.forEach(key=>{ const k=norm(key); const latin=/^[a-z0-9()-]+$/.test(k); if(latin?tokens.includes(k):q.includes(k)) s+=k.length; }); if(s>score){score=s; best=e;} });
+  return best;
+}
+function say(role,text,code){
+  const m=document.createElement('div'); m.className='m '+role; m.textContent=text;
+  if(code){ const p=document.createElement('pre'); p.className='code'; p.textContent=code; m.appendChild(p); }
+  const box=$('#tmsgs'); box.appendChild(m); box.scrollTop=box.scrollHeight;
+}
+function ask(text){
+  text=text.trim(); if(!text) return; say('me',text);
+  setTimeout(()=>{
+    const e=answer(text);
+    if(e) say('bot',e.a,e.code);
+    else say('bot','لم أجد إجابة مناسبة لهذا السؤال بعد. جرّب أن تذكر اسم الموضوع مباشرة، مثل: المكدس، الشجرة، OSI، Subnetting أو DNS.');
+  },350);
+}
+function tutorOpen(o){
+  $('#tutor').hidden=!o; $('#fab').hidden=o||!state.data.user;
+  if(o){
+    if(!$('#tmsgs').children.length){ const n=state.data.user?state.data.user.name.trim().split(/\s+/)[0]:''; say('bot','أهلاً '+n+'! أنا المعلم الذكي. اسألني عن أي موضوع في هياكل البيانات أو الشبكات.'); }
+    $('#tin').focus();
+  }
+}
+$('#tchips').innerHTML=CHIPS.map(c=>`<button type="button" data-act="chip">${c}</button>`).join('');
+
+/* ============ الأحداث ============ */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act, id=el.dataset.id;
+  switch(a){
+    case 'home': go('home'); break;
+    case 'subject': go('subject',id); break;
+    case 'section': go('section',id); break;
+    case 'logout': state.data.user=null; save(); tutorOpen(false); $('#tmsgs').innerHTML=''; state.view={name:'home'}; render(); break;
+    case 'quiz-start': startQuiz(); break;
+    case 'pick': pick(+el.dataset.i); break;
+    case 'quiz-next': nextQ(); break;
+    case 'sticker': { const st=STICKERS.find(s=>s.id===id); if(earnedSet().has(id)){ el.classList.remove('wiggle'); void el.offsetWidth; el.classList.add('wiggle'); toast(st.name); } else toast('انجح في الاختبار المرتبط لتفتح هذا الملصق'); break; }
+    case 'tutor-open': tutorOpen(true); break;
+    case 'tutor-close': tutorOpen(false); break;
+    case 'chip': ask(el.textContent); break;
+  }
+});
+document.addEventListener('submit',e=>{
+  e.preventDefault();
+  if(e.target.id==='login'){
+    const name=$('#name').value.trim(), year=$('#year').value, err=$('#err');
+    if(name.length<2){ err.textContent='اكتب اسمك (حرفان على الأقل).'; $('#name').focus(); return; }
+    if(!year){ err.textContent='اختر السنة الدراسية.'; $('#year').focus(); return; }
+    state.data.user={id:uid(),name,year}; save();
+    remote(c=>c.from('students').upsert({id:state.data.user.id,name,year}));
+    state.view={name:'home'}; render();
+  } else if(e.target.id==='tform'){
+    const i=$('#tin'); const v=i.value; i.value=''; ask(v);
+  }
+});
+render();
+})();
+</script>
+
+</body>
+</html>

@@ -204,8 +204,8 @@ document.documentElement.setAttribute('lang','ar');
 
 /* ============ 1) الإعدادات: ضع بيانات مشروع Supabase هنا ============ */
 const CONFIG = {
-  SUPABASE_URL: '',        // مثال: https://xxxx.supabase.co
-  SUPABASE_ANON_KEY: ''    // المفتاح العام anon public
+  SUPABASE_URL: 'https://wrmebfezsebioygxneoa.supabase.co',        // مثال: https://xxxx.supabase.co
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndybWViZmV6c2ViaW95Z3huZW9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxNzE5MjYsImV4cCI6MjEwNzc0NzkyNn0.cJ2sLAItdeEJM6fhi4rYDJrPeeWtqoN9ByaQtC7HrAE'    // المفتاح العام anon public
 };
 const YEARS = ['السنة الأولى','السنة الثانية','السنة الثالثة','السنة الرابعة'];
 const PASS_MARK = 2; // عدد الإجابات الصحيحة المطلوبة للنجاح من 3
@@ -593,7 +593,7 @@ document.addEventListener('submit',e=>{
     if(name.length<2){ err.textContent='اكتب اسمك (حرفان على الأقل).'; $('#name').focus(); return; }
     if(!year){ err.textContent='اختر السنة الدراسية.'; $('#year').focus(); return; }
     state.data.user={id:uid(),name,year}; save();
-    remote(c=>c.from('students').upsert({id:state.data.user.id,name,year}));
+    remote(c=>c.from('students').insert({id:state.data.user.id,name,year}));
     state.view={name:'home'}; render();
   } else if(e.target.id==='tform'){
     const i=$('#tin'); const v=i.value; i.value=''; ask(v);
